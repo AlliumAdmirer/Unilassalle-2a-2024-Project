@@ -1,0 +1,225 @@
+RSTUDIO commands
+
+
+###################################################################################################
+
+# Installing packages necessary for the data treatment and visualization
+
+install.packages("readxl")
+library(readxl)
+
+install.packages("dplyr")
+library(dplyr)
+
+install.packages("ggplot2")
+library(ggplot2)
+
+install.packages("exactRankTests")
+library(exactRankTests)
+
+install.packages("coin")
+library(coin)
+
+# Upload of the Excel sheet in RStudio
+data_frame <- read_excel("C:/Users/Bob/Downloads/RICA_isafe_students_vf.xlsx", sheet = 1)
+
+# Filtering of the data that we will be using (TRA05, SEXEP, CHAFF, SUTOT & TAXES) and creating a data frame for it.
+filtered_data = data_frame[, c("TRA05", "SEXEP", "CHAFF", "SUTOT", "TAXES")]
+
+# filtered data 2 = woman and age classes
+filtered_data2 <- filtered_data %>% filter(filtered_data$TRA05 & filtered_data$SEXEP == "2")
+# Performing a shapiro wilk test on the data
+shapiro.test(filtered_data2$TRA05)
+
+# filtered data 3 = woman and farm type
+# filtered data 4 = woman and CHAFF
+# filtered data 5 = men and CHAFF
+# filtered_data4chaffnoO = women  + CHAFF + no outliers
+
+# Creation of a density plot for incomes.
+Density plot :
+ggplot(data = filtered_data, aes(x = CHAFF)) + geom_density(color = "blue") +  labs(title = "Density plot of incomes", x = "Income in €", y = "Density")
+
+# Boxplot of the women's income
+boxplot(filtered_data4$CHAFF, main = "Boxplot of women's income", ylab = "Income in €", ylim = c(0, 4000000), col = "purple", border = "black")
+# Boxplot of the women's income without outliers
+boxplot(filtered_data4$CHAFF, main = "Boxplot of women's income", ylab = "Income in €", ylim = c(0, 700000), col = "purple", border = "black", outline = FALSE)
+
+# Histogram of women's income without outliers
+hist(filtered_data4chaffnoO$CHAFF, xlab = "Income in €", ylab = "Frequency", main = "Histogram of women's income without outliers", col = "aquamarine3")
+
+# Histogram of women's income with outliers
+hist(filtered_data4$CHAFF, xlab = "Income in €", ylab = "Frequency", main = "Histogram of women's income with outliers", ylim = c(0, 1000), col = "aquamarine4")
+
+# Histogram of women's income with outliers
+hist(filtered_data5$CHAFF, xlab = "Income in €", ylab = "Frequency", main = "Histogram of men's income with outliers", ylim = c(0, 6000), col = "orange")
+
+# Histogram of women's income without outliers
+hist(filtered_data5chaffnoO$CHAFF, xlab = "Income in €", ylab = "Frequency", main = "Histogram of men's income without outliers", ylim = c(0, 1200), col = "chocolate")
+
+
+normal_data_men_chaff_noO <- rnorm(5797, mean = 208741, sd = 150478.4)
+
+data_frame_chaff_noO <- filtered_data %>% filter(filtered_data$CHAFF < 678774.5 & filtered_data$CHAFF!= 0)
+
+# Wilcoxon test between males and females regarding revenue
+wilcox.test(filtered_data4$CHAFF, filtered_data5$CHAFF)
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  filtered_data4$CHAFF and filtered_data5$CHAFF
+W = 2438280, p-value = 1.382e-12
+alternative hypothesis: true location shift is not equal to 0
+
+# Creating variables for categories of age and revenue
+revage1to7 <- data_frame %>% filter(data_frame$TRA05 <= 7 & data_frame$CHAFF)
+revage8to14 <- data_frame %>% filter(data_frame$TRA05 >= 8 & data_frame$CHAFF)
+
+# Wilcoxon test between age groups regarding revenue
+
+wilcox.test(revage1to7$CHAFF, revage8to14$CHAFF, alternative = "greater")
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  revage1to7$CHAFF and revage8to14$CHAFF
+W = 6768511, p-value = 1.655e-06
+alternative hypothesis: true location shift is greater than 0
+
+# Creating variables for classes of farm sizes
+revfarm0to10 <- data_frame %>% filter(data_frame$SUTOT <= 10 & data_frame$CHAFF)
+revfarm11to20 <- data_frame %>% filter(data_frame$SUTOT >= 11 & data_frame$SUTOT <= 20 & data_frame$CHAFF)
+revfarm21to30 <- data_frame %>% filter(data_frame$SUTOT >= 21 & data_frame$CHAFF)
+
+# Wilcoxon rank between class1 > class2
+wilcox.test(revfarm0to10$CHAFF, revfarm11to20$CHAFF, alternative = "greater")
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  revfarm0to10$CHAFF and revfarm11to20$CHAFF
+W = 3882680, p-value = 0.8239
+alternative hypothesis: true location shift is greater than 0
+
+# Wilcoxon rank between class3 > class2
+wilcox.test(revfarm21to30$CHAFF, revfarm11to20$CHAFF, alternative = "greater")
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  revfarm21to30$CHAFF and revfarm11to20$CHAFF
+W = 3481692, p-value < 2.2e-16
+alternative hypothesis: true location shift is greater than 0
+
+# Wilcoxon rank between class3 > class1
+wilcox.test(revfarm21to30$CHAFF, revfarm0to10$CHAFF, alternative = "greater")
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  revfarm21to30$CHAFF and revfarm0to10$CHAFF
+W = 2629795, p-value < 2.2e-16
+alternative hypothesis: true location shift is greater than 0
+
+# Creation of labels for the age classes pie chart
+under_50 = paste(round(sum(table(revage1to7$TRA05))/(sum(table(revage1to7$TRA05))+sum(table(revage8to14$TRA05)))*100), "%")
+over_50 = paste(round(sum(table(revage8to14$TRA05))/(sum(table(revage1to7$TRA05))+sum(table(revage8to14$TRA05)))*100),"%")
+
+# Creation of variable for the data of the pie chart
+pie_chart_age = c(sum(table(revage1to7$TRA05)), sum(table(revage8to14$TRA05)))
+
+# Creation of the age classes pie chart and addition of the legend
+pie(pie_chart_age, edges = 500, radius = 0.7, density = NULL, main = "Percentage of age of farm managers", border = "black", labels = c(under_50, over_50), col = c("burlywood", "burlywood4"))
+legend(x = 0.7, y = -0.5, legend = c(under_50, over_50), fill = c("burlywood", "burlywood4"))
+
+# Creation of labels for the sex pie chart
+sex_blank = paste(round(sum(filtered_data$SEXEP < 1)/(sum(table(filtered_data$SEXEP))), digits = 3)*100, "%")
+sex_male = paste(round(sum(filtered_data$SEXEP == 1)/(sum(table(filtered_data$SEXEP))), digits = 3)*100, "%")
+sex_female = paste(round(sum(filtered_data$SEXEP == 2)/(sum(table(filtered_data$SEXEP))), digits = 3)*100, "%")
+
+# Creation of the sex pie chart and addition of the legend
+pie(table(filtered_data$SEXEP), edges = 500, radius = 0.8, density = NULL, main = "Percentage of sex of farm managers", border = "black", labels = c(sex_blank,sex_male,sex_female), col = c("lightgrey", "cadetblue2", "lightpink")) 
+legend(x = 1, y = -0.5, c("Blank", "Male", "Female"), fill = c("lightgrey", "cadetblue2", "lightpink"))
+
+# Creation of the variable for the data of the farm size pie chart
+pie_chart_farms = c(sum(table(revfarm0to10$SUTOT)), sum(table(revfarm11to20$SUTOT)), sum(table(revfarm21to30$SUTOT)))
+
+# Creation of the labels of the farms pie chart
+farm1 = paste(round(sum(table(revfarm0to10$SUTOT)/(sum(pie_chart_farms)) *100), digits = 1), "%")
+farm2 = paste(round(sum(table(revfarm11to20$SUTOT)/(sum(pie_chart_farms)) *100), digits = 1), "%")
+farm3 = paste(round(sum(table(revfarm21to30$SUTOT)/(sum(pie_chart_farms)) *100), digits = 1), "%")
+
+# Creation of the farms size pie chart with the addition of the legend
+pie(pie_chart_farms, edges =  500, radius = 1.08, density = NULL, main = "Percentage of size of farms", border = "black", labels = c(farm1,farm2,farm3), col = c ("darkorange", "darkgoldenrod1", "darkorange3"))
+legend(x = 1, y = 1, legend = c("Group 1", "Group 2", "Group 3"), fill = c ("darkorange", "darkgoldenrod1", "darkorange3"))
+
+# Filtering of the data for average blank, man and women revenues
+avgmalechaff <- data_frame %>% filter(filtered_data$CHAFF != 0 & filtered_data$SEXEP == 1)
+mean(avgmalechaff$CHAFF)
+avgfemalechaff <- data_frame %>% filter(filtered_data$CHAFF != 0 & filtered_data$SEXEP == 2)
+mean(avgfemalechaff$CHAFF)
+avgblankchaff <- data_frame %>% filter(filtered_data$CHAFF != 0 & filtered_data$SEXEP == 0)
+mean(avgblankchaff$CHAFF)
+
+# Vectors for the data of the average revenues per sex barplot and labels
+avgrevenues = c(mean(avgblankchaff$CHAFF), mean(avgfemalechaff$CHAFF), mean(avgmalechaff$CHAFF))
+genders = c(1, 1, 1)
+genderlabel = c("Blank", "Female", "Male")
+
+# Barplot of average revenues per sex
+barp <- barplot(avgrevenues, genders, ylim = c(0, 500000), main = "Average revenues by sex", names.arg = genderlabel, ylab = "Revenues in €", col = c("lightgray", "lightpink", "lightblue"))
+text(barp, round(avgrevenues, digits = 0) - 0.5, labels = round(avgrevenues, digits = 2))
+
+
+# Vectors for the data of the avreage revenue per age barplot and labels
+agevsrev = c(mean(revage1to7$CHAFF), mean(revage8to14$CHAFF))
+age_labelsvsrev = c(1, 1) 
+label_ age = c("< 50 years old", "> 50 years old")
+
+# Barplot of the average revenues per age group
+barp1 <- barplot(agevsrev, age_labelsvsrev, main = "Average revenues per age class", ylim = c(0, 300000), ylab = "Revenues in €", col = c("orange", "brown"), names.arg = label_age)
+text(barp1, round(agevsrev, digits = 0) - 0.5, labels = round(agevsrev, digits = 2))
+
+# Creation of variables, vector and labels for the average revenue per farm barplot
+avgfarmrevclass1 = mean(revfarm0to10$CHAFF)
+avgfarmrevclass2 = mean(revfarm11to20$CHAFF)
+avgfarmrevclass3 = mean(revfarm21to30$CHAFF)
+avgfarmrevclass = c(avgfarmrevclass1, avgfarmrevclass2, avgfarmrevclass3)
+farm_labelvsrev = c(1, 1, 1)
+
+# Creation of the average revenue per farm type barplot
+barp2 <- barplot(avgfarmrevclass, farm_labelvsrev, main = "Average revenue by farm class", ylim = c(0, 400000), ylab = "Revenues in €", col = c("lightblue", "darkcyan", "darkseagreen4"), names.arg = label_farm)
+text(barp2, round(avgfarmrevclass, digits = 0) - 0.5, labels = round(avgfarmrevclass, digits = 2))
+
+# Filtering of the data to do a correlation tests
+filteredtax <- data_frame %>% filter(filtered_data$TAXES !=0 & filtered_data$CHAFF)
+
+# Spearman's correlation test
+cor.test(filteredtax$CHAFF, filteredtax$TAXES, method = "spearman")
+
+	Spearman's rank correlation rho
+
+data:  filteredtax$CHAFF and filteredtax$TAXES
+S = 6843805103, p-value = 4.006e-10
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+       rho 
+-0.1080316 
+
+# Kendall's correlation test
+cor.test(order(filteredtax$CHAFF, decreasing = FALSE), filteredtax$TAXES, method = "kendall", alternative = "two.sided")
+
+	Kendall's rank correlation tau
+
+data:  order(filteredtax$CHAFF, decreasing = FALSE) and filteredtax$TAXES
+z = -0.11213, p-value = 0.9107
+alternative hypothesis: true tau is not equal to 0
+sample estimates:
+       tau 
+-0.0012959 
+
+# Values for chi squared test
+chisqagefarm = filtered_data[, c("TRA05", "SUTOT")]
+# Chi squared test
+chisq.test(chisqagefarm)
+
+	Pearson's Chi-squared test
+
+data:  chisqagefarm
+X-squared = 18453, df = 7202, p-value < 2.2e-16
